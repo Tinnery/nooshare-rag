@@ -5,7 +5,7 @@ from document import Document, DocumentMetadata, DocumentType
 from chunker import SectionChunker
 from migrations import run_migrations
 from storage import ChunkRepository
-from embedding import MockEmbeddingModel
+from embedding import OllamaEmbeddingModel
 
 # Test document
 test_content = """
@@ -76,7 +76,7 @@ try:
 
     # Generate and save embeddings
     print("\nGenerating embeddings...")
-    embedding_model = MockEmbeddingModel(dim=1536)
+    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:0.6b")
     texts = [chunk.content for chunk in chunks]
     embeddings = embedding_model.embed(texts)
     chunk_ids = [chunk.chunk_id for chunk in chunks]
