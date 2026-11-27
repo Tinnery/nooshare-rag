@@ -1,6 +1,7 @@
 """Embedding interface for text vectorization."""
 from typing import List, Protocol
 import hashlib
+import math
 
 
 class EmbeddingModel(Protocol):
@@ -26,22 +27,33 @@ class MockEmbeddingModel:
         """Generate deterministic mock embeddings based on text hash."""
         embeddings = []
         for text in texts:
-            # Use hash to generate deterministic but unique vectors
-            hash_bytes = hashlib.sha256(text.encode()).digest()
-            # Convert bytes to floats in [-1, 1]
+            # Use multiple hashes to generate enough bytes for the full vector
             vector = []
-            for i in range(0, min(len(hash_bytes) * 4, self._dimension), 4):
-                if i + 4 <= len(hash_bytes):
-                    # Use 4 bytes to generate a float
+            hash_idx = 0
+            
+            while len(vector) < self._dimension:
+                # Generate a new hash for each chunk
+                hash_input = f"{text}:{hash_idx}".encode()
+                hash_bytes = hashlib.sha256(hash_input).digest()
+                
+                # Convert 32 bytes to 8 floats (4 bytes each)
+                for i in range(0, 32, 4):
+                    if len(vector) >= self._dimension:
+                        break
                     val = int.from_bytes(hash_bytes[i:i+4], 'big')
+                    # Normalize to [-1, 1]
                     normalized = (val / (2**32 - 1)) * 2 - 1
                     vector.append(normalized)
-                else:
-                    vector.append(0.0)
-            # Pad with zeros if needed
-            while len(vector) < self._dimension:
-                vector.append(0.0)
+                
+                hash_idx += 1
+            
+            # Normalize the vector to unit length (cosine similarity)
+            magnitude = math.sqrt(sum(v * v for v in vector))
+            if magnitude > 0:
+                vector = [v / magnitude for v in vector]
+            
             embeddings.append(vector)
+        
         return embeddings
     
     @property
