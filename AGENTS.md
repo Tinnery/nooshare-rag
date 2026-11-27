@@ -76,3 +76,54 @@
 - 用具体动作和对象表达，避免抽象名词链
 - 有依据的陈述直接说明，无依据的标注假设
 - 配置优先可执行，文档只补「为什么」
+
+---
+
+## MVP 实现状态（2026-11-28）
+
+**已完成的核心能力：**
+
+1. **文档输入协议**（document.py）
+   - Document 和 DocumentMetadata 数据类
+   - 支持年报/半年报等文档类型
+   - 包含 PIT 时间戳（available_at）
+
+2. **文本切片**（chunker.py）
+   - SectionChunker 实现章节感知切片
+   - 支持中文标题模式匹配（节/章/部、一/二/三、(一)/(二)等）
+   - 保留章节路径和字符偏移
+
+3. **PostgreSQL 持久化**（migrations.py + storage.py）
+   - documents 表：文档元数据
+   - chunks 表：切片内容 + pgvector 向量
+   - HNSW 索引：向量相似度检索
+   - 全文检索索引：GIN 索引（simple 配置）
+
+4. **检索接口**（storage.py）
+   - full_text_search：全文检索
+   - vector_search：向量相似度检索
+   - hybrid_search：RRF 混合检索
+   - 所有接口支持 available_at 过滤
+
+5. **Embedding 接口**（embedding.py）
+   - EmbeddingModel 协议定义
+   - MockEmbeddingModel 测试实现
+   - 真实模型接入点（OpenAI、BGE 等）
+
+6. **测试套件**
+   - test_chunker.py：切片功能测试
+   - test_storage.py：存储层集成测试
+   - test_retrieval_quality.py：检索质量测试框架
+
+**已知限制：**
+
+- 中文全文检索：PostgreSQL simple 配置分词效果差，需要安装 zhparser 或 pg_jieba
+- Mock embeddings：无语义信息，检索质量测试无法验证真实效果
+- 无 reranker：当前仅使用 embedding 相似度，未实现 cross-encoder 重排
+
+**下一步：**
+
+1. 接入真实 embedding 模型（OpenAI ada-002 或本地 BGE）
+2. 安装中文分词扩展（zhparser 或 pg_jieba）
+3. 实现 reranker 接口
+4. 接入 nooshare-annual-semi-research 验证真实年报检索
