@@ -3,7 +3,7 @@ import psycopg2
 from typing import Optional
 
 # Default embedding dimension (OpenAI ada-002)
-EMBEDDING_DIM = 2560
+EMBEDDING_DIM = 2000
 
 
 def migrate_v1(conn: psycopg2.extensions.connection) -> None:
@@ -76,7 +76,7 @@ def migrate_v1(conn: psycopg2.extensions.connection) -> None:
 
 
 def migrate_v2_create_vector_index(conn: psycopg2.extensions.connection, 
-                                    use_hnsw: bool = True) -> None:
+                                    use_hnsw: bool = False) -> None:
     """Create vector similarity index (HNSW or IVFFlat)."""
     
     with conn.cursor() as cur:
@@ -94,12 +94,15 @@ def migrate_v2_create_vector_index(conn: psycopg2.extensions.connection,
             count = cur.fetchone()[0]
             
             if count > 0:
-                n_lists = min(100, count // 10)
+                n_lists = max(1, min(100, count // 10))
+                # Temporarily raise maintenance_work_mem for large-dim vectors
+                cur.execute("SET maintenance_work_mem = '512MB'")
                 cur.execute(f"""
                     CREATE INDEX IF NOT EXISTS idx_chunks_embedding_ivfflat 
                     ON chunks USING ivfflat (embedding vector_cosine_ops)
                     WITH (lists = {n_lists});
                 """)
+                cur.execute("RESET maintenance_work_mem")
         
         conn.commit()
 
@@ -141,7 +144,7 @@ def run_migrations(conn: psycopg2.extensions.connection) -> None:
     
     if version < 2:
         print("Running migration v2: vector index...")
-        migrate_v2_create_vector_index(conn, use_hnsw=True)
+        migrate_v2_create_vector_index(conn)
         print("Migration v2 complete.")
     
     print(f"Current schema version: {get_migration_version(conn)}")

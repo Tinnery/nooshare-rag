@@ -80,6 +80,10 @@ class OllamaEmbeddingModel:
         
         embeddings = response.json()["embeddings"]
         
+        # Truncate to max 2000 dimensions (pgvector index limit)
+        MAX_DIM = 2000
+        embeddings = [e[:MAX_DIM] for e in embeddings]
+        
         # Set dimension on first call
         if self._dim is None:
             self._dim = len(embeddings[0])
