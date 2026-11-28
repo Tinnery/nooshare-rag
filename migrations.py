@@ -3,7 +3,7 @@ import psycopg2
 from typing import Optional
 
 # Default embedding dimension (OpenAI ada-002)
-EMBEDDING_DIM = 2560
+EMBEDDING_DIM = 4096
 
 
 def migrate_v1(conn: psycopg2.extensions.connection) -> None:

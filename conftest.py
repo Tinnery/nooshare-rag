@@ -114,7 +114,7 @@ def repo(db_connection):
 @pytest.fixture(scope="session")
 def embedding_model():
     """Create OllamaEmbeddingModel instance."""
-    return OllamaEmbeddingModel(model="qwen3-embedding:4b")
+    return OllamaEmbeddingModel(model="qwen3-embedding:8b")
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_data(repo, embedding_model):

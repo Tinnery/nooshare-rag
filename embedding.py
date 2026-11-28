@@ -59,11 +59,11 @@ class MockEmbeddingModel:
 class OllamaEmbeddingModel:
     """Ollama embedding model (local)."""
     
-    def __init__(self, model: str = "qwen3-embedding:4b", base_url: str = "http://localhost:11434"):
+    def __init__(self, model: str = "qwen3-embedding:8b", base_url: str = "http://localhost:11434"):
         """Initialize Ollama embedding model.
         
         Args:
-            model: Model name (default: qwen3-embedding:4b)
+            model: Model name (default: qwen3-embedding:8b)
             base_url: Ollama API base URL (default: http://localhost:11434)
         """
         self.model = model
