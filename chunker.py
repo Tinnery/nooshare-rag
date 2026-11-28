@@ -30,7 +30,7 @@ class SectionChunker:
         (5, r'^\((\d+)\)\s*(.+)$'),  # (1) 详细说明
     ]
     
-    def __init__(self, max_chunk_size: int = 1000, overlap: int = 100):
+    def __init__(self, max_chunk_size: int = 2000, overlap: int = 300):
         self.max_chunk_size = max_chunk_size
         self.overlap = overlap
     
