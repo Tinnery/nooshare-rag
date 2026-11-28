@@ -192,8 +192,8 @@ class ChunkRepository:
         embedding: Optional[List[float]] = None,
         limit: int = 10,
         available_before: Optional[datetime] = None,
-        fts_weight: float = 0.3,
-        vector_weight: float = 0.7
+        fts_weight: float = 0.7,
+        vector_weight: float = 0.3
     ) -> List[RetrievedChunk]:
         """Hybrid search using RRF (Reciprocal Rank Fusion)."""
         # Get full-text search results
