@@ -76,7 +76,7 @@ try:
 
     # Generate and save embeddings
     print("\nGenerating embeddings...")
-    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:8b")
+    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:4b")
     texts = [chunk.content for chunk in chunks]
     embeddings = embedding_model.embed(texts)
     chunk_ids = [chunk.chunk_id for chunk in chunks]
