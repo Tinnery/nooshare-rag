@@ -149,9 +149,9 @@ def test_retrieval():
         print(f"Test {i}: {query}")
         print(f"  Expected: {gt['description']}")
         
-        # Vector search
+        # Hybrid search (FTS + vector)
         query_embedding = embedding_model.embed([query])[0]
-        results = repo.vector_search(query_embedding, limit=5)
+        results = repo.hybrid_search(query, query_embedding, limit=10)
         
         if not results:
             print(f"  ❌ FAILED: No results returned")
