@@ -117,11 +117,11 @@ class ChunkRepository:
             SELECT 
                 c.chunk_id, c.doc_id, c.content, c.section_path,
                 c.chunk_index, c.start_offset, c.end_offset, c.token_count,
-                ts_rank_cd(to_tsvector('simple', c.content), plainto_tsquery('simple', %s)) as score,
+                ts_rank_cd(to_tsvector('jiebacfg', c.content), plainto_tsquery('jiebacfg', %s)) as score,
                 d.available_at
             FROM chunks c
             JOIN documents d ON c.doc_id = d.doc_id
-            WHERE to_tsvector('simple', c.content) @@ plainto_tsquery('simple', %s)
+            WHERE to_tsvector('jiebacfg', c.content) @@ plainto_tsquery('jiebacfg', %s)
         """
         params = [query, query]
         

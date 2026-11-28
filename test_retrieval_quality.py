@@ -115,3 +115,71 @@ def test_pit_filtering(repo, embedding_model):
     assert "test_000001_2023_annual" in doc_ids, f"Missing 2023 report: {doc_ids}"
     assert "test_000001_2024_annual" in doc_ids, f"Missing 2024 report: {doc_ids}"
     print(f"  ✅ PASSED: Both reports visible")
+
+
+def test_chinese_fts(repo):
+    """Test Chinese full-text search with jiebacfg."""
+    print("\n=== Chinese FTS Test (jiebacfg) ===\n")
+    
+    # Test cases: (query, expected_doc_id, expected_keywords)
+    fts_cases = [
+        {
+            "query": "营业收入",
+            "expected_doc_id": "test_000001_2024_annual",
+            "expected_keywords": ["营业收入", "100亿元"],
+            "description": "Should find chunks containing '营业收入'"
+        },
+        {
+            "query": "新能源",
+            "expected_doc_id": "test_000001_2024_annual",
+            "expected_keywords": ["新能源业务", "50亿元"],
+            "description": "Should find chunks containing '新能源' (jieba tokenizes as single word)"
+        },
+        {
+            "query": "研发投入",
+            "expected_doc_id": "test_000001_2023_annual",
+            "expected_keywords": ["研发投入", "5.88%"],
+            "description": "Should find chunks containing '研发投入'"
+        }
+    ]
+    
+    passed = 0
+    failed = 0
+    
+    for i, case in enumerate(fts_cases, 1):
+        query = case["query"]
+        expected_doc_id = case["expected_doc_id"]
+        expected_keywords = case["expected_keywords"]
+        
+        print(f"Test {i}: query='{query}'")
+        print(f"  Expected: {case['description']}")
+        
+        # Full-text search
+        results = repo.full_text_search(query, limit=5)
+        
+        if not results:
+            print(f"  ❌ FAILED: No results returned")
+            failed += 1
+            continue
+        
+        # Check if results contain expected keywords
+        found_keywords = set()
+        for r in results:
+            for kw in expected_keywords:
+                if kw in r.content:
+                    found_keywords.add(kw)
+        
+        if len(found_keywords) == len(expected_keywords):
+            print(f"  ✅ PASSED: All keywords found")
+            print(f"     Keywords: {list(found_keywords)}")
+            print(f"     Top result: {results[0].doc_id} (score={results[0].score:.4f})")
+            passed += 1
+        else:
+            missing = set(expected_keywords) - found_keywords
+            print(f"  ❌ FAILED: Missing keywords: {missing}")
+            failed += 1
+        
+        print()
+    
+    print(f"=== Results: {passed}/{len(fts_cases)} passed, {failed} failed ===")
+    assert passed >= 2, f"Chinese FTS test failed ({passed}/{len(fts_cases)})"

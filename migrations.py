@@ -67,7 +67,7 @@ def migrate_v1(conn: psycopg2.extensions.connection) -> None:
         # Full-text search index on chunks
         cur.execute("""
             CREATE INDEX IF NOT EXISTS idx_chunks_content_gin 
-            ON chunks USING gin(to_tsvector('simple', content));
+            ON chunks USING gin(to_tsvector('jiebacfg', content));
         """)
         
         # Trigram index skipped (pg_trgm not installed)
