@@ -82,7 +82,7 @@ def load_real_annual_reports():
     """Load real annual reports into database."""
     conn = psycopg2.connect("postgresql://travis@localhost:5432/nooshare_dev")
     repo = ChunkRepository(conn)
-    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:0.6b")
+    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:4b")
     chunker = SectionChunker(max_chunk_size=2000, overlap=300)
     
     total_chunks = 0
@@ -134,7 +134,7 @@ def test_retrieval():
     """Test retrieval against ground truth."""
     conn = psycopg2.connect("postgresql://travis@localhost:5432/nooshare_dev")
     repo = ChunkRepository(conn)
-    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:0.6b")
+    embedding_model = OllamaEmbeddingModel(model="qwen3-embedding:4b")
     
     print("\n=== Real Annual Report Retrieal Test ===\n")
     
