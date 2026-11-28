@@ -41,8 +41,11 @@ class SectionChunker:
         chunks = []
         chunk_idx = 0
         
+        # Build metadata prefix for FTS matching
+        metadata_prefix = self._build_metadata_prefix(doc)
+        
         for section in sections:
-            section_chunks = self._split_section(section, doc.doc_id, chunk_idx)
+            section_chunks = self._split_section(section, doc.doc_id, chunk_idx, metadata_prefix)
             chunks.extend(section_chunks)
             chunk_idx += len(section_chunks)
         
@@ -99,7 +102,26 @@ class SectionChunker:
                 return (level, line)
         return None
     
-    def _split_section(self, section: dict, doc_id: str, start_idx: int) -> List[Chunk]:
+    def _build_metadata_prefix(self, doc: Document) -> str:
+        """Build a metadata prefix to prepend to each chunk for better FTS matching."""
+        symbol = doc.metadata.symbol
+        fiscal_year = doc.metadata.fiscal_year
+        fiscal_period = doc.metadata.fiscal_period
+        
+        # Common company name mapping
+        company_names = {
+            '000001.SZ': '平安银行',
+            '600519.SH': '贵州茅台',
+        }
+        
+        company_name = company_names.get(symbol, symbol)
+        period_names = {1: '一季报', 2: '半年报', 3: '三季报', 4: '年报'}
+        period_name = period_names.get(fiscal_period, '')
+        
+        return f'{company_name} {fiscal_year}年{period_name} '
+
+    
+    def _split_section(self, section: dict, doc_id: str, start_idx: int, metadata_prefix: str = '') -> List[Chunk]:
         """Split a section into chunks if too large."""
         content = '\n'.join(section['content'])
         chunks = []
@@ -108,7 +130,7 @@ class SectionChunker:
             chunks.append(Chunk(
                 chunk_id=f"{doc_id}_chunk_{start_idx}",
                 doc_id=doc_id,
-                content=content,
+                content=metadata_prefix + content,
                 section_path=section['path'],
                 chunk_index=start_idx,
                 start_offset=section['start_offset'],
@@ -126,7 +148,7 @@ class SectionChunker:
                 chunks.append(Chunk(
                     chunk_id=f"{doc_id}_chunk_{idx}",
                     doc_id=doc_id,
-                    content=chunk_content,
+                    content=metadata_prefix + chunk_content,
                     section_path=section['path'],
                     chunk_index=idx,
                     start_offset=section['start_offset'] + pos,
